@@ -2,14 +2,11 @@
 #define BLTH_H
 
 #include <Arduino.h>
+#include "../config.h"
 #include <nRF24L01.h> // Подключаем файл конфигурации из библиотеки RF24
 #include <RF24.h> // Подключаем библиотеку для работа для работы с модулем NRF24L01
 
-#define MODE_SCANNER 0
-#define MODE_TRANSMITTER 1
-#define MODE_RECEIVER 2
 
-#define TR_MODE MODE_RECEIVER
 
 #define BLTH_PACKET_STATISTIC 112       // p
 #define BLTH_SETTINGS 115               // s
@@ -44,6 +41,8 @@ static_assert(sizeof(PACKET) > 10, "Size is not correct");
 
 namespace blth {
     bool settings(bool &sT, RF24 &radio);
+    void printMenu();
+    void getCommand();
     // Reciver
     namespace RE {
         void printPacketStatistics(uint32_t &pCT,

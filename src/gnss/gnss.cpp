@@ -1,13 +1,14 @@
 #include "gnss.h"
-
-extern TinyGPSPlus gnss;
+#include "../config.h"
+TinyGPSPlus gnss;
+//extern TinyGPSPlus gnss;
 extern SoftwareSerial ss;
 
 void GNSS::GNSSDelay(uint32_t ms) {
     uint32_t start = millis();
     do {
-        while (Serial2.available()) {
-            gnss.encode(Serial2.read());
+        while (BTSerial.available()) {
+            gnss.encode(BTSerial.read());
         }
     } while (millis() - start < ms);
 }
@@ -22,4 +23,14 @@ double GNSS::GetLongitude() {
 
 bool GNSS::LocIsValide() {
     return gnss.location.isValid(); 
+}
+
+void functionGNSSDelay() { //BUG   понять для чего дилей
+#if USE_GNSS == 1
+    GNSS::GNSSDelay(100);
+    if(GNSS::LocIsValide()) {
+        pack.latitude = GNSS::GetLatitude();
+        pack.longitude = GNSS::GetLongitude();
+    }
+#endif
 }

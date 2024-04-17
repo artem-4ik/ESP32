@@ -1,5 +1,6 @@
 #include "blth_print.h"
 #include "../gnss/gnss.h"
+#include "../radio/NRF24L01.h"
 
 extern rf24_crclength_e preset_CRCLength;
 extern uint8_t preset_AutoAck;
@@ -10,72 +11,72 @@ extern uint64_t pipe;
 extern PACKET pack;
 
 bool blth::settings(bool &sT, RF24 &radio) {
-    uint8_t settings;
+    uint8_t settings; 
     if(!sT) {
-        Serial.println("");
-        Serial.println("| Settings |");
+        USBSerial.println("");
+        USBSerial.println("| Settings |");
         
-        Serial.print("& CRC Length ( ");
+        USBSerial.print("& CRC Length ( ");
         switch (preset_CRCLength) {
             case RF24_CRC_8:
-                Serial.println("CRC_8 ): ");
-                Serial.println("  6  - CRC16");
-                Serial.println("  d  - CRC_DISABLED");
+                USBSerial.println("CRC_8 ): ");
+                USBSerial.println("  6  - CRC16");
+                USBSerial.println("  d  - CRC_DISABLED");
                 break;
             case RF24_CRC_16:
-                Serial.println("CRC_16 ): ");
-                Serial.println("  8  - CRC_8");
-                Serial.println("  d  - CRC_DISABLED");
+                USBSerial.println("CRC_16 ): ");
+                USBSerial.println("  8  - CRC_8");
+                USBSerial.println("  d  - CRC_DISABLED");
                 break;
             case RF24_CRC_DISABLED:
-                Serial.println("CRC_DISABLED ): ");
-                Serial.println("  8  - CRC_8");
-                Serial.println("  6  - CRC16");
+                USBSerial.println("CRC_DISABLED ): ");
+                USBSerial.println("  8  - CRC_8");
+                USBSerial.println("  6  - CRC16");
                 break;
         }
 
-        Serial.print("& AutoAck ( ");
+        USBSerial.print("& AutoAck ( ");
         if(preset_AutoAck) {
-            Serial.println("true ): ");
-            Serial.println("  f  - false");
+            USBSerial.println("true ): ");
+            USBSerial.println("  f  - false");
         }
         else {
-            Serial.println("false ): ");
-            Serial.println("  t  - true");
+            USBSerial.println("false ): ");
+            USBSerial.println("  t  - true");
         }
 
-        Serial.print("& Chanel ( ");
-        Serial.print(preset_ChannelNumber);
-        Serial.println(" ) :");
-        Serial.println("1 - +1 channel");
-        Serial.println("o - -1 channel");
-        Serial.println("2 - +10 channels");
-        Serial.println("n - -10 channels");
+        USBSerial.print("& Chanel ( ");
+        USBSerial.print(preset_ChannelNumber);
+        USBSerial.println(" ) :");
+        USBSerial.println("1 - +1 channel");
+        USBSerial.println("o - -1 channel");
+        USBSerial.println("2 - +10 channels");
+        USBSerial.println("n - -10 channels");
 
-        Serial.print("& Data Rate ( ");
+        USBSerial.print("& Data Rate ( ");
         switch (preset_DataRate) {
             case RF24_1MBPS:
-                Serial.println("1 MBPS ): ");
-                Serial.println("  q  - 2 MBPS");
-                Serial.println("  e  - 250 KBPS");
+                USBSerial.println("1 MBPS ): ");
+                USBSerial.println("  q  - 2 MBPS");
+                USBSerial.println("  e  - 250 KBPS");
                 break;
             case RF24_2MBPS:
-                Serial.println("2 MBPS ): ");
-                Serial.println("  w  - 1 MBPS");
-                Serial.println("  e  - 250 KBPS");
+                USBSerial.println("2 MBPS ): ");
+                USBSerial.println("  w  - 1 MBPS");
+                USBSerial.println("  e  - 250 KBPS");
                 break;
             case RF24_250KBPS:
-                Serial.println("250 KBPS ): ");
-                Serial.println("  q  - 2 MBPS");
-                Serial.println("  w  - 1 MBPS");
+                USBSerial.println("250 KBPS ): ");
+                USBSerial.println("  q  - 2 MBPS");
+                USBSerial.println("  w  - 1 MBPS");
                 break;
         }
 
         sT = true;
     } 
 
-    if (Serial.available()) {
-        settings = Serial.read();
+    if (USBSerial.available()) {
+        settings = USBSerial.read();
         #if TR_MODE == MODE_RECEIVER
             radio.stopListening();
             radio.closeReadingPipe(pipe); // Открываем трубу ID передатчика
@@ -83,27 +84,27 @@ bool blth::settings(bool &sT, RF24 &radio) {
         delay(100);
         switch(settings) {
             case BLTH_CRC_LENGTH_DISABLED:
-                Serial.println("-> CRCLength: disabled"); 
+                USBSerial.println("-> CRCLength: disabled"); 
                 radio.setCRCLength(RF24_CRC_DISABLED);
                 preset_CRCLength = RF24_CRC_DISABLED;
                 break;
             case BLTH_CRC_LENGTH_8:
-                Serial.println("-> CRCLength: 8"); 
+                USBSerial.println("-> CRCLength: 8"); 
                 radio.setCRCLength(RF24_CRC_8);
                 preset_CRCLength = RF24_CRC_8;
                 break;
             case BLTH_CRC_LENGTH_16:
-                Serial.println("-> CRCLength: 16"); 
+                USBSerial.println("-> CRCLength: 16"); 
                 radio.setCRCLength(RF24_CRC_16);
                 preset_CRCLength = RF24_CRC_16;
                 break;
             case BLTH_AUTO_ACK_TRUE:
-                Serial.println("-> AutoAck: true"); 
+                USBSerial.println("-> AutoAck: true"); 
                 radio.setAutoAck(true);
                 preset_AutoAck = true;
                 break;
             case BLTH_AUTO_ACK_FALSE:
-                Serial.println("-> AutoAck: false"); 
+                USBSerial.println("-> AutoAck: false"); 
                 radio.setAutoAck(false);
                 preset_AutoAck = false;
                 break;
@@ -112,52 +113,52 @@ bool blth::settings(bool &sT, RF24 &radio) {
                     preset_ChannelNumber++;
                 }
                 radio.setChannel(preset_ChannelNumber);
-                Serial.print("-> Channel Set: ");
-                Serial.println(preset_ChannelNumber);
+                USBSerial.print("-> Channel Set: ");
+                USBSerial.println(preset_ChannelNumber);
                 break;
             case BLTH_MINUS_ONE_CHANNEL:
                 if(preset_ChannelNumber >= 0){
                     preset_ChannelNumber--;
                 }
                 radio.setChannel(preset_ChannelNumber);
-                Serial.print("-> Channel Set: ");
-                Serial.println(preset_ChannelNumber);
+                USBSerial.print("-> Channel Set: ");
+                USBSerial.println(preset_ChannelNumber);
                 break;
             case BLTH_PLUS_TEN_CHANNELS:
                 if(preset_ChannelNumber < 126){
                     preset_ChannelNumber += 10;
                 }
                 radio.setChannel(preset_ChannelNumber);
-                Serial.print("-> Channel Set: ");
-                Serial.println(preset_ChannelNumber);
+                USBSerial.print("-> Channel Set: ");
+                USBSerial.println(preset_ChannelNumber);
                 break;
             case BLTH_MINUS_TEN_CHANNELS:
                 if(preset_ChannelNumber >= 0){
                     preset_ChannelNumber -= 10;
                 }
                 radio.setChannel(preset_ChannelNumber);
-                Serial.print("-> Channel Set: ");
-                Serial.println(preset_ChannelNumber);
+                USBSerial.print("-> Channel Set: ");
+                USBSerial.println(preset_ChannelNumber);
                 break;
             case BLTH_DATA_RATE_2MBPS:
                 preset_DataRate = RF24_2MBPS;
                 radio.setDataRate(preset_DataRate);
-                Serial.println("-> Data Rate: 2 MBPS");
+                USBSerial.println("-> Data Rate: 2 MBPS");
                 break;
             case BLTH_DATA_RATE_1MBPS:
                 preset_DataRate = RF24_1MBPS;
                 radio.setDataRate(preset_DataRate);
-                Serial.println("-> Data Rate: 1 MBPS");
+                USBSerial.println("-> Data Rate: 1 MBPS");
                 break;
             case BLTH_DATA_RATE_250KBPS:
                 preset_DataRate = RF24_250KBPS;
                 radio.setDataRate(preset_DataRate);
-                Serial.println("-> Data Rate: 250 KBPS");
+                USBSerial.println("-> Data Rate: 250 KBPS");
                 break;
             case BLTH_MENU:
-                Serial.println("     ***     ");
+                USBSerial.println("     ***     ");
                 radio.printDetails();
-                Serial.println("     ***     ");
+                USBSerial.println("     ***     ");
                 return true;
         }
         delay(100);
@@ -171,6 +172,66 @@ bool blth::settings(bool &sT, RF24 &radio) {
         #endif
     }
     return false;
+}
+
+void blth::printMenu() {
+    USBSerial.println("| Menu |");
+    USBSerial.println("p - Packet statistic");
+    USBSerial.println("s - NRF settings");
+    USBSerial.println("m - Main Menu");
+    USBSerial.println("g - GNSS");
+    // USBSerial.println("S - scanner");
+    settings = 0; //TODO 
+}
+
+
+uint32_t printPrevTime = 0;
+uint32_t printCurTime = 0;
+uint16_t buff;
+
+void blth::getCommand() {
+    static uint16_t settings;
+    if(!USBSerial.available()) {
+        return;
+    }
+
+    buff = USBSerial.read();
+    if(buff == 13 || buff == 10) {
+        return;
+    }
+    settings = buff;
+    USBSerial.println(settings);
+
+switch(settings) {
+        case BLTH_PACKET_STATISTIC:
+        #if TR_MODE == MODE_TRANSMITTER
+            blth::TR::printPacketStatistics(printCurTime, printPrevTime, pack.num, countTime);
+        #elif TR_MODE == MODE_RECEIVER
+            blth::RE::printPacketStatistics(printCurTime, printPrevTime, succPack, missPack, missPackCrc, ping, countTime);
+        #endif
+            break;
+        case BLTH_SETTINGS:
+            if(blth::settings(settingsTabl, radio)) {
+                settings = BLTH_MENU; // TODO возможно это  blth::printMenu();
+            }
+            break;
+        case BLTH_MENU:
+            blth::printMenu();
+            break;
+        case BLTH_GNSS_STATISTIC:
+            blth::printGNSSStatistics();
+            USBSerial.println("Long and Lat TRANSMITTER:");
+            USBSerial.println("LatT:");
+            USBSerial.println(packTonR.latitude, 6);
+            USBSerial.println("LngT:");
+            USBSerial.println(packTonR.longitude, 6);
+            USBSerial.println();
+            break;
+
+    }
+    if(settings != BLTH_SETTINGS) {
+        settingsTabl = false;
+    }
 }
 
 // pCT - printCurTime
@@ -191,18 +252,18 @@ void blth::RE::printPacketStatistics(uint32_t &pCT,
     pCT = millis();
 
     if (pCT - pPT > 1000) {
-        Serial.print("S => ");
-        Serial.print(sP);
-        Serial.print("    |    ");
-        Serial.print("M => ");
-        Serial.print(mP);
-        Serial.print("    |    ");
-        Serial.print("MCRC => ");
-        Serial.print(mPCRC);
-        Serial.print("    |    ");
-        Serial.print("Ping => ");
-        Serial.print((float)p / 1000, 3);
-        Serial.println(" ms");
+        USBSerial.print("S => ");
+        USBSerial.print(sP);
+        USBSerial.print("    |    ");
+        USBSerial.print("M => ");
+        USBSerial.print(mP);
+        USBSerial.print("    |    ");
+        USBSerial.print("MCRC => ");
+        USBSerial.print(mPCRC);
+        USBSerial.print("    |    ");
+        USBSerial.print("Ping => ");
+        USBSerial.print((float)p / 1000, 3);
+        USBSerial.println(" ms");
         cT = 0;
         sP = 0;
         mP = 0;
@@ -224,8 +285,8 @@ void blth::TR::printPacketStatistics(uint32_t &pCT,
     pCT = millis();
 
     if (pCT - pPT > 1000) {
-        Serial.print("Sent => ");
-        Serial.println(sP - pSP);
+        USBSerial.print("Sent => ");
+        USBSerial.println(sP - pSP);
         cT = 0;
         // pSP - prevSentPack
         pSP = sP;
@@ -236,20 +297,20 @@ void blth::TR::printPacketStatistics(uint32_t &pCT,
 void blth::printGNSSStatistics() {
     
     if (!GNSS::LocIsValide()) {
-        Serial.print("Latitude : ");
-        Serial.println("*****");
-        Serial.print("Longitude : ");
-        Serial.println("*****");
+        USBSerial.print("Latitude : ");
+        USBSerial.println("*****");
+        USBSerial.print("Longitude : ");
+        USBSerial.println("*****");
         delay(4000);
     }
     else {
-        Serial.println("GNSS READING: ");
+        USBSerial.println("GNSS READING: ");
     
-        Serial.print("Latitude : ");
-        Serial.println(pack.latitude, 6);
+        USBSerial.print("Latitude : ");
+        USBSerial.println(pack.latitude, 6);
     
-        Serial.print("Longitude : ");
-        Serial.println(pack.longitude, 6);
+        USBSerial.print("Longitude : ");
+        USBSerial.println(pack.longitude, 6);
     
         delay(4000);
     }
