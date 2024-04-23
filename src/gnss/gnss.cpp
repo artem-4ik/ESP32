@@ -1,7 +1,6 @@
 #include "gnss.h"
 #include "../config.h"
 TinyGPSPlus gnss;
-//extern TinyGPSPlus gnss;
 extern SoftwareSerial ss;
 
 void GNSS::GNSSDelay(uint32_t ms) {

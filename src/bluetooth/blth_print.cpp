@@ -2,20 +2,25 @@
 #include "../gnss/gnss.h"
 #include "../radio/NRF24L01.h"
 
+extern RF24 radio; 
+
 extern rf24_crclength_e preset_CRCLength;
 extern uint8_t preset_AutoAck;
 extern uint8_t preset_ChannelNumber;
 extern rf24_datarate_e preset_DataRate;
 extern uint64_t pipe;
-
 extern PACKET pack;
+extern PACKET packTonR;
+bool settingsTabl = false;
+uint32_t printPrevTime = 0;
+uint32_t printCurTime = 0;
+uint16_t buff;
 
 bool blth::settings(bool &sT, RF24 &radio) {
     uint8_t settings; 
     if(!sT) {
         USBSerial.println("");
         USBSerial.println("| Settings |");
-        
         USBSerial.print("& CRC Length ( ");
         switch (preset_CRCLength) {
             case RF24_CRC_8:
@@ -39,20 +44,18 @@ bool blth::settings(bool &sT, RF24 &radio) {
         if(preset_AutoAck) {
             USBSerial.println("true ): ");
             USBSerial.println("  f  - false");
-        }
-        else {
+        } else {
             USBSerial.println("false ): ");
             USBSerial.println("  t  - true");
         }
 
-        USBSerial.print("& Chanel ( ");
+        USBSerial.print("& Channel ( ");
         USBSerial.print(preset_ChannelNumber);
         USBSerial.println(" ) :");
         USBSerial.println("1 - +1 channel");
         USBSerial.println("o - -1 channel");
         USBSerial.println("2 - +10 channels");
         USBSerial.println("n - -10 channels");
-
         USBSerial.print("& Data Rate ( ");
         switch (preset_DataRate) {
             case RF24_1MBPS:
@@ -71,7 +74,6 @@ bool blth::settings(bool &sT, RF24 &radio) {
                 USBSerial.println("  w  - 1 MBPS");
                 break;
         }
-
         sT = true;
     } 
 
@@ -165,7 +167,6 @@ bool blth::settings(bool &sT, RF24 &radio) {
         #if TR_MODE == MODE_TRANSMITTER
             radio.openWritingPipe(pipe); // Открываем трубу с уникальным ID
         #endif
-
         #if TR_MODE == MODE_RECEIVER
             radio.openReadingPipe(1, pipe); // Открываем трубу ID передатчика
             radio.startListening(); // Начинаем прослушивать открываемую трубу
@@ -180,21 +181,15 @@ void blth::printMenu() {
     USBSerial.println("s - NRF settings");
     USBSerial.println("m - Main Menu");
     USBSerial.println("g - GNSS");
-    // USBSerial.println("S - scanner");
-    settings = 0; //TODO 
+    //USBSerial.println("S - scanner");
+    //settings = 0; //TODO 
 }
-
-
-uint32_t printPrevTime = 0;
-uint32_t printCurTime = 0;
-uint16_t buff;
 
 void blth::getCommand() {
     static uint16_t settings;
     if(!USBSerial.available()) {
         return;
     }
-
     buff = USBSerial.read();
     if(buff == 13 || buff == 10) {
         return;
@@ -202,7 +197,7 @@ void blth::getCommand() {
     settings = buff;
     USBSerial.println(settings);
 
-switch(settings) {
+    switch(settings) {
         case BLTH_PACKET_STATISTIC:
         #if TR_MODE == MODE_TRANSMITTER
             blth::TR::printPacketStatistics(printCurTime, printPrevTime, pack.num, countTime);
@@ -227,7 +222,6 @@ switch(settings) {
             USBSerial.println(packTonR.longitude, 6);
             USBSerial.println();
             break;
-
     }
     if(settings != BLTH_SETTINGS) {
         settingsTabl = false;
@@ -250,7 +244,6 @@ void blth::RE::printPacketStatistics(uint32_t &pCT,
                                     uint32_t &cT) 
 {
     pCT = millis();
-
     if (pCT - pPT > 1000) {
         USBSerial.print("S => ");
         USBSerial.print(sP);
@@ -283,7 +276,6 @@ void blth::TR::printPacketStatistics(uint32_t &pCT,
 {
     static uint32_t pSP; 
     pCT = millis();
-
     if (pCT - pPT > 1000) {
         USBSerial.print("Sent => ");
         USBSerial.println(sP - pSP);
@@ -295,23 +287,18 @@ void blth::TR::printPacketStatistics(uint32_t &pCT,
 }
 
 void blth::printGNSSStatistics() {
-    
     if (!GNSS::LocIsValide()) {
         USBSerial.print("Latitude : ");
         USBSerial.println("*****");
         USBSerial.print("Longitude : ");
         USBSerial.println("*****");
         delay(4000);
-    }
-    else {
+    } else {
         USBSerial.println("GNSS READING: ");
-    
         USBSerial.print("Latitude : ");
         USBSerial.println(pack.latitude, 6);
-    
         USBSerial.print("Longitude : ");
         USBSerial.println(pack.longitude, 6);
-    
         delay(4000);
     }
 }

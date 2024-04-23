@@ -5,10 +5,12 @@
 #include "motors/step_motor.h"
 #include "gnss/gnss.h"
 #include "Radio/NRF24L01.h"
+#include "scanners/scanner_I2C.h"
+#include "Servo.h"
+#include "hmc5883/hmc5883.h"
 
-int angle = 0;
-int prev_angle = 0;
 
+Servo test_servo;
 stepM::StepMotor motor;
 
 void setup() {
@@ -16,11 +18,9 @@ void setup() {
     BTSerial.begin(9600);
     USBSerial.println("USB start");
     BTSerial.println("BT start");
-
-    motor.start();
-
-    pinMode(PC13, OUTPUT);
-
+    scanI2C();
+    hmcInit();
+    pinMode(LED, OUTPUT);
 #if USE_NRF == 1
 #if TR_MODE == MODE_SCANNER
     scannerStart();
@@ -28,7 +28,6 @@ void setup() {
         scannerScan();
     }
 #endif
-
     nrf24l01Init();
 #if TR_MODE == MODE_TRANSMITTER
     nrf24l01StartTransmitter();
@@ -36,51 +35,39 @@ void setup() {
     nrf24l01StartReceiver();
 #endif  
 #endif
+ test_servo.attach(PA8); // указываем управляющий пин
+  delay(100);
+  // устанавливаем начальное положение сервопривода
+  test_servo.write(5);
+  delay(1000); 
 }
 
-uint8_t data = 12;
 uint32_t c = 0;
-int8_t i = 0;
-
-bool settingsTabl = false;
-bool scanner = false;
 
 void loop() {
 #if TR_MODE == MODE_TRANSMITTER
-
     blth::getCommand();
-
     currTime = micros();
-
     if (++c > 10) {
         c = 0;
-        digitalWrite(PC13, !digitalRead(PC13));
+        digitalWrite(LED, !digitalRead(LED));
     }
-
    functionGNSSDelay();
-
    nrf24l01TestChennalSpeedTransmit();
-
 #endif
 
 #if TR_MODE == MODE_RECEIVER
-    angelRotationCalculation();
-
     blth::getCommand();
-
     functionGNSSDelay();
-
-   nrf24l01TestChennalSpeedReceive();
-
-	angle = stepM::calculateAzimuth(pack.latitude, pack.longitude, packTonR.latitude, packTonR.longitude);
-    motor.AngleToStep(angle);
-    
-    motor.controlMS1(0);
-    motor.controlMS2(0);
-    motor.controlMS3(0);
-    
-    motor.controlDIR(D_RIGHT);
+    nrf24l01TestChannelSpeedReceive();
+    motor.angleRotationCalculation();
+    motor.setDir(smdClockWise);
+    motor.makeStep();
 
 #endif
+//   test_servo.write(5); 
+  // разжимаем клешню
+//   test_servo.write(60);
+hmcRead();
+  delay(1000);
 }
- 

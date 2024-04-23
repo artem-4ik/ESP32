@@ -6,8 +6,6 @@
 #include <nRF24L01.h> // Подключаем файл конфигурации из библиотеки RF24
 #include <RF24.h> // Подключаем библиотеку для работа для работы с модулем NRF24L01
 
-
-
 #define BLTH_PACKET_STATISTIC 112       // p
 #define BLTH_SETTINGS 115               // s
 #define BLTH_MENU 109                   // m
@@ -60,8 +58,6 @@ namespace blth {
                                 uint32_t sP,
                                 uint32_t &cT);
     }
-
     void printGNSSStatistics();
 }
-
 #endif

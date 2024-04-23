@@ -16,5 +16,4 @@ namespace GNSS {
     double GetLongitude();
     bool LocIsValide();
 }
- 
 #endif

@@ -10,9 +10,24 @@
 #define MS2 PB4
 #define MS3 PB5
 
-#define D_RIGHT 1
-#define D_LEFT -1
+enum StepMotorDirection {
+    smdClockWise, 
+    smdClockCounterWise
+};
+
+enum StepMotorSpeed {
+    sms1_1 = 0,
+    sms1_2 = 1,
+    sms1_4 = 2,
+    sms1_8 = 3,
+    sms1_16 = 7
+};
+
 #define DEGREE_DEVIATION 5
+#define MOTOR_WAIT 5
+
+extern PACKET pack;
+extern PACKET packTonR;
 
 namespace stepM {
     double calculateAzimuth(double lat1, double lon1, double lat2, double lon2) {
@@ -37,93 +52,83 @@ namespace stepM {
     }
 
     class StepMotor {
-        private:
-            float step_range;
-            uint8_t wait;
-        public:
-            uint16_t step_count;
-            uint8_t direction;
+    private: 
+        float stepsPerDegree;
+    public:
+        uint16_t stepsNeed;
+        StepMotor() {
+            stepsNeed = 0;
+
+            pinMode(STEP, OUTPUT);
+            pinMode(DIR, OUTPUT);
+            pinMode(MS1, OUTPUT);
+            pinMode(MS2, OUTPUT);
+            pinMode(MS3, OUTPUT);
+            pinMode(ENABLE, OUTPUT);
             
-            StepMotor() {
-                step_range = 1.8;
-                wait = 16;
-                direction = D_RIGHT;
-                step_count = 0;
-            };
+            digitalWrite(ENABLE, HIGH);
+            setSpeed(sms1_4);
+        }
 
-            void start() {
-                pinMode(STEP, OUTPUT);
-                pinMode(DIR, OUTPUT);
-                pinMode(MS1, OUTPUT);
-                pinMode(MS2, OUTPUT);
-                pinMode(MS3, OUTPUT);
-                pinMode(ENABLE, OUTPUT);
+        void setSpeed(StepMotorSpeed speed) {
+            digitalWrite(MS1, speed >> 0 & 1);
+            digitalWrite(MS2, speed >> 1 & 1);
+            digitalWrite(MS3, speed >> 2 & 1);
 
-                digitalWrite(ENABLE, HIGH);
-            };
+            switch (speed) {
+                case sms1_1: stepsPerDegree = 5.0f / 9.0f * 1; break;
+                case sms1_2: stepsPerDegree = 5.0f / 9.0f * 2; break;
+                case sms1_4: stepsPerDegree = 5.0f / 9.0f * 4; break;
+                case sms1_8: stepsPerDegree = 5.0f / 9.0f * 8; break;
+                case sms1_16: stepsPerDegree = 5.0f / 9.0f * 16; break;
+            }        
+        }
 
-            void AngleToStep(int angle) {
-                step_count = round(angle / step_range);
-            };
-
-            void controlMS1(bool c) {
-                if(c) {
-                    digitalWrite(MS1, HIGH);
-                }
-                else {
-                    digitalWrite(MS1, LOW);
-                }
-            };
-
-            void controlMS2(bool c) {
-                if(c) {
-                    digitalWrite(MS2, HIGH);
-                }
-                else {
-                    digitalWrite(MS2, LOW);
-                }
-            };
-
-            void controlMS3(bool c) {
-                if(c) {
-                    digitalWrite(MS3, HIGH);
-                }
-                else {
-                    digitalWrite(MS3, LOW);
-                }
-            };
-
-            void controlDIR(uint8_t dir) {
-                switch (dir) {
-                case D_RIGHT:
-                    digitalWrite(DIR, HIGH);
-                    direction = D_RIGHT;
-                    break;
-                case D_LEFT:
-                    digitalWrite(DIR, LOW);
-                    direction = D_LEFT;
-                    break;
-
-                default:
-                    break;
-                }
+        void setDir(StepMotorDirection dir) {
+            switch (dir) {
+            case smdClockCounterWise:
+                digitalWrite(DIR, HIGH);
+                break;
+            case smdClockWise:
+                digitalWrite(DIR, LOW);
+                break;
             }
+        }
 
-            void steps() {
+        void makeStep() {
+            static uint32_t oldTime = 0;
+            static uint32_t newTime;
+            static bool stateStep = LOW;
+
+            if (stepsNeed) {
                 digitalWrite(ENABLE, LOW);
-
-                for(int i = 0; i < step_count; i++) {
-                    digitalWrite(STEP, HIGH);
-                    delay(wait);
-                    digitalWrite(STEP, LOW);
-                    delay(wait);
+                newTime = millis();
+                if (newTime - oldTime >= MOTOR_WAIT || newTime < oldTime) {
+                    stateStep = !stateStep;
+                    digitalWrite(STEP, stateStep);
+                    if (stateStep == LOW) {
+                        --stepsNeed;
+                        if (stepsNeed == 0) {
+                            digitalWrite(ENABLE, HIGH);
+                        }
+                    }
+                    oldTime = newTime;
                 }
-                
-                digitalWrite(ENABLE, HIGH);
-
-                step_count = 0;
             }
+        }
+
+        void angleRotationCalculation() {
+        #if USE_MOTOR == 1 && TR_MODE == MODE_RECEIVER 
+            static int16_t prev_angle = 0;
+            static int16_t angle;
+            angle = stepM::calculateAzimuth(pack.latitude, pack.longitude, packTonR.latitude, packTonR.longitude);
+            if(abs(angle - prev_angle) > DEGREE_DEVIATION) {
+                stepsNeed = (uint16_t) (abs(angle - prev_angle) * stepsPerDegree);
+                setDir(angle - prev_angle < 0 ? smdClockCounterWise : smdClockWise);
+                prev_angle = angle; 
+            }
+        #endif
+        }
     };
 }
-
 #endif
