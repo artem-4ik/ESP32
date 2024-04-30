@@ -9,11 +9,17 @@
 #include "Servo.h"
 #include "hmc5883/hmc5883.h"
 
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_HMC5883_U.h>
+
+Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
 
 Servo test_servo;
-stepM::StepMotor motor;
+stepM::StepMotor motor; 
 
 void setup() {
+    Serial.begin(9600);
     USBSerial.begin(115200);
     BTSerial.begin(9600);
     USBSerial.println("USB start");
@@ -45,6 +51,23 @@ void setup() {
 uint32_t c = 0;
 
 void loop() {
+sensors_event_t event;
+mag.getEvent(&event);
+float heading = atan2(event.magnetic.y, event.magnetic.x);
+float declinationAngle = 0.22;
+heading += declinationAngle;
+if (heading < 0) {
+heading += 2 * PI;
+}
+if (heading > 2 * PI) {
+heading -= 2 * PI;
+}
+float headingDegrees = heading * 180 / M_PI;
+Serial.print("Heading : ");
+Serial.print(headingDegrees);
+Serial.println(" degree");
+delay(500);
+
 #if TR_MODE == MODE_TRANSMITTER
     blth::getCommand();
     currTime = micros();
