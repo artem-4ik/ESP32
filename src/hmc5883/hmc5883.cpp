@@ -26,8 +26,6 @@ void hmcInit() {
     Wire.write(HMC_REGISTER_MODE); 
     Wire.write(HMC_MD); 
     Wire.endTransmission();
-    
-    
 }
 
 void hmcRead() {

@@ -23,7 +23,7 @@
 
 #define HMC_MD 0 /* Continuous-Conversion Mode. */
 
-#define HMC_GN 3 /* ± 2.5Ga  */
+#define HMC_GN 3 /* ± 2.5Ga */
 
 void hmcInit();
 void hmcRead();
