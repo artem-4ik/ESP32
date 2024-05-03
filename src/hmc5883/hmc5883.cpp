@@ -45,20 +45,31 @@ void hmcRead() {
     {
         /* code */
         data[i] = Wire.read();
-        BTSerial.print(data[i]);
-        BTSerial.print(" ");
+        // BTSerial.print(data[i]);
+        // BTSerial.print(" ");
     }
     hmcX = data[0] << 8 | data[1];
-    hmcY = data[2] << 8 | data[3];
-    hmcZ = data[4] << 8 | data[5];
-    BTSerial.print("\n");
-        BTSerial.print(hmcX);
-        BTSerial.print(" ");
-        BTSerial.print(hmcY);
-        BTSerial.print(" ");
-        BTSerial.print(hmcZ);
+    hmcY = data[4] << 8 | data[5];
+    hmcZ = data[2] << 8 | data[3];
+
+    hmcX += -200;
+    hmcY += 220;
+ 
+
+    float a = atan2(hmcY, hmcX);
+    BTSerial.print(a * 180 / 3.14);
+    // BTSerial.print("\n");  
+
+    // BTSerial.print("\n");
+        // BTSerial.print("X = ");
+        // BTSerial.print(hmcX);
+        // BTSerial.print(" ");
+        // BTSerial.print("Y = ");
+        // BTSerial.print(hmcY);
+        // BTSerial.print(" ");
+    //     BTSerial.print("Z = ");
+    //     BTSerial.print(hmcZ);
     BTSerial.print("\n");
     
     Wire.endTransmission();
-
 }

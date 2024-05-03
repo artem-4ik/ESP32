@@ -41,11 +41,11 @@ void setup() {
     nrf24l01StartReceiver();
 #endif  
 #endif
- test_servo.attach(PA8); // указываем управляющий пин
-  delay(100);
-  // устанавливаем начальное положение сервопривода
-  test_servo.write(5);
-  delay(1000); 
+//  test_servo.attach(PA8); // указываем управляющий пин
+//   delay(100);
+//   // устанавливаем начальное положение сервопривода
+//   test_servo.write(5);
+//   delay(1000); 
 }
 
 uint32_t c = 0;
@@ -63,10 +63,10 @@ if (heading > 2 * PI) {
 heading -= 2 * PI;
 }
 float headingDegrees = heading * 180 / M_PI;
-Serial.print("Heading : ");
-Serial.print(headingDegrees);
-Serial.println(" degree");
-delay(500);
+// Serial.print("Угол : ");
+// Serial.print(headingDegrees);
+// Serial.println(" градусов ");
+delay(100);
 
 #if TR_MODE == MODE_TRANSMITTER
     blth::getCommand();
@@ -84,7 +84,7 @@ delay(500);
     functionGNSSDelay();
     nrf24l01TestChannelSpeedReceive();
     motor.angleRotationCalculation();
-    motor.setDir(smdClockWise);
+    motor.setDir(smdClockCounterWise);
     motor.makeStep();
 
 #endif
@@ -92,5 +92,5 @@ delay(500);
   // разжимаем клешню
 //   test_servo.write(60);
 hmcRead();
-  delay(1000);
+//   delay(1000);
 }
