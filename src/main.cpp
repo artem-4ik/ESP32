@@ -5,7 +5,7 @@
 #include "motors/step_motor.h"
 #include "gnss/gnss.h"
 #include "Radio/NRF24L01.h"
-#include "scanners/scanner_I2C.h"
+#include "scanners/scanner_I2C.h" 
 #include "Servo.h"
 #include "hmc5883/hmc5883.h"
 
@@ -52,21 +52,21 @@ uint32_t c = 0;
 
 void loop() {
 sensors_event_t event;
-mag.getEvent(&event);
-float heading = atan2(event.magnetic.y, event.magnetic.x);
-float declinationAngle = 0.22;
-heading += declinationAngle;
-if (heading < 0) {
-heading += 2 * PI;
-}
-if (heading > 2 * PI) {
-heading -= 2 * PI;
-}
-float headingDegrees = heading * 180 / M_PI;
+// mag.getEvent(&event);
+// float heading = atan2(event.magnetic.y, event.magnetic.x);
+// float declinationAngle = 0.22;
+// heading += declinationAngle;
+// // if (heading < 0) {
+// heading += 2 * PI;
+// }
+// if (heading > 2 * PI) {
+// heading -= 2 * PI;
+// }
+// float headingDegrees = heading * 180 / M_PI;
 // Serial.print("Угол : ");
 // Serial.print(headingDegrees);
 // Serial.println(" градусов ");
-delay(100);
+// delay(100);
 
 #if TR_MODE == MODE_TRANSMITTER
     blth::getCommand();
@@ -84,13 +84,13 @@ delay(100);
     functionGNSSDelay();
     nrf24l01TestChannelSpeedReceive();
     motor.angleRotationCalculation();
-    motor.setDir(smdClockCounterWise);
+    // motor.setDir(smdClockCounterWise); 
+   // motor.setSpeed(sms1_4);
     motor.makeStep();
 
+    
+
 #endif
-//   test_servo.write(5); 
-  // разжимаем клешню
-//   test_servo.write(60);
-hmcRead();
-//   delay(1000);
+// hmcRead();
+// //   delay(1000);
 }

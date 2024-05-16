@@ -26,7 +26,7 @@
 #define HMC_GN 3 /* ± 2.5Ga */
 
 void hmcInit();
-void hmcRead();
+int16_t hmcRead();
 
 
 #endif

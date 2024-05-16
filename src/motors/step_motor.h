@@ -2,6 +2,7 @@
 #define STEP_MOTOR_H
 
 #include <Arduino.h>
+#include "hmc5883/hmc5883.h"
 
 #define ENABLE PA0
 #define STEP PB0
@@ -57,7 +58,7 @@ namespace stepM {
     public:
         uint16_t stepsNeed;
         StepMotor() {
-            stepsNeed = 0;
+            stepsNeed = 1000;
 
             pinMode(STEP, OUTPUT);
             pinMode(DIR, OUTPUT);
@@ -100,6 +101,9 @@ namespace stepM {
             static uint32_t newTime;
             static bool stateStep = LOW;
 
+            static int32_t prev_time = 0;
+            static int32_t new_time;
+           
             if (stepsNeed) {
                 digitalWrite(ENABLE, LOW);
                 newTime = millis();
@@ -110,6 +114,7 @@ namespace stepM {
                         --stepsNeed;
                         if (stepsNeed == 0) {
                             digitalWrite(ENABLE, HIGH);
+                            hmcRead();
                         }
                     }
                     oldTime = newTime;
@@ -117,11 +122,22 @@ namespace stepM {
             }
         }
 
+
         void angleRotationCalculation() {
         #if USE_MOTOR == 1 && TR_MODE == MODE_RECEIVER 
+            static int32_t prev_time = 0;
+            static int32_t new_time;
             static int16_t prev_angle = 0;
             static int16_t angle;
-            angle = stepM::calculateAzimuth(pack.latitude, pack.longitude, packTonR.latitude, packTonR.longitude);
+            // new_time = millis();
+            // if (new_time - prev_time < 1000){
+            //     return;
+            // }
+            // prev_time = new_time;
+           
+            angle = -hmcRead();
+            prev_angle = 0;
+            // angle = stepM::calculateAzimuth(pack.latitude, pack.longitude, packTonR.latitude, packTonR.longitude);
             if(abs(angle - prev_angle) > DEGREE_DEVIATION) {
                 stepsNeed = (uint16_t) (abs(angle - prev_angle) * stepsPerDegree);
                 setDir(angle - prev_angle < 0 ? smdClockCounterWise : smdClockWise);

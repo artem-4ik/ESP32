@@ -24,7 +24,7 @@ bool GNSS::LocIsValide() {
     return gnss.location.isValid(); 
 }
 
-void functionGNSSDelay() { //BUG   понять для чего дилей
+void functionGNSSDelay() { 
 #if USE_GNSS == 1
     GNSS::GNSSDelay(100);
     if(GNSS::LocIsValide()) {
